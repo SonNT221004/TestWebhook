@@ -58,10 +58,12 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   const { name, description } = req.body;
 
-  // BR 25: Validate required fields
-  if (!name || !name.trim()) {
-    return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
-  }
+  // BUG: Bỏ qua validation, cho phép name rỗng (SAI với BR 25)
+
+  // BR 25: Validate required fields (ĐÚNG theo requirement)
+  // if (!name || !name.trim()) {
+  //   return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
+  // }
 
   const items = readDB();
   const index = items.findIndex(i => i.id === req.params.id && !i.isDeleted);
@@ -85,11 +87,11 @@ router.delete('/:id', (req, res) => {
   if (index === -1) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
 
   // BUG: Hard delete - xóa hẳn bản ghi khỏi mảng (SAI với BR 31)
-  // items.splice(index, 1);
+  items.splice(index, 1);
 
   // BR 31: Soft delete - đánh dấu "Đã xóa" (ĐÚNG theo requirement)
-  items[index].isDeleted = true;
-  items[index].updatedAt = new Date().toISOString();
+  //items[index].isDeleted = true;
+  //items[index].updatedAt = new Date().toISOString();
 
   writeDB(items);
   res.json({ message: 'Xóa thành công' });
