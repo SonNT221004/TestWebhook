@@ -85,11 +85,11 @@ router.delete('/:id', (req, res) => {
   if (index === -1) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
 
   // BUG: Hard delete - xóa hẳn bản ghi khỏi mảng (SAI với BR 31)
-  // items.splice(index, 1);
+  items.splice(index, 1);
 
   // BR 31: Soft delete - đánh dấu "Đã xóa" (ĐÚNG theo requirement)
-  items[index].isDeleted = true;
-  items[index].updatedAt = new Date().toISOString();
+  //items[index].isDeleted = true;
+  //items[index].updatedAt = new Date().toISOString();
 
   writeDB(items);
   res.json({ message: 'Xóa thành công' });
