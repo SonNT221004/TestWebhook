@@ -58,10 +58,12 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   const { name, description } = req.body;
 
-  // BR 25: Validate required fields
-  if (!name || !name.trim()) {
-    return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
-  }
+  // BUG: Bỏ qua validation, cho phép name rỗng (SAI với BR 25)
+
+  // BR 25: Validate required fields (ĐÚNG theo requirement)
+  // if (!name || !name.trim()) {
+  //   return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
+  // }
 
   const items = readDB();
   const index = items.findIndex(i => i.id === req.params.id && !i.isDeleted);
