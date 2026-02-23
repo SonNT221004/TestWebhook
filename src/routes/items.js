@@ -78,15 +78,18 @@ router.put('/:id', (req, res) => {
   res.json({ message: 'Cập nhật thành công (SCD 9)', data: items[index] });
 });
 
-// CMUC 5: Delete (soft delete) - DELETE /api/items/:id
+// CMUC 5: Delete - DELETE /api/items/:id
 router.delete('/:id', (req, res) => {
   const items = readDB();
   const index = items.findIndex(i => i.id === req.params.id && !i.isDeleted);
   if (index === -1) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
 
-  // BR 31: Soft delete - đánh dấu "Đã xóa"
-  items[index].isDeleted = true;
-  items[index].updatedAt = new Date().toISOString();
+  // BUG: Hard delete - xóa hẳn bản ghi khỏi mảng (SAI với BR 31)
+  items.splice(index, 1);
+
+  // BR 31: Soft delete - đánh dấu "Đã xóa" (ĐÚNG theo requirement)
+  // items[index].isDeleted = true;
+  // items[index].updatedAt = new Date().toISOString();
 
   writeDB(items);
   res.json({ message: 'Xóa thành công' });
