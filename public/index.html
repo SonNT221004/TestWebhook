@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Item Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+    th { background: #f0f0f0; }
+    button { padding: 6px 12px; cursor: pointer; margin-right: 4px; }
+    .btn-primary { background: #007bff; color: #fff; border: none; border-radius: 4px; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; border-radius: 4px; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; border-radius: 4px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; padding: 24px; border-radius: 8px; min-width: 360px; }
+    .modal-box h2 { margin-top: 0; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px; }
+    .error { color: red; font-size: 13px; margin-top: 4px; }
+    .modal-actions { margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end; }
+    .detail-row { margin: 8px 0; }
+    .detail-label { font-weight: bold; display: inline-block; width: 120px; }
+  </style>
+</head>
+<body>
+
+<h1>Quản lý Item</h1>
+<button class="btn-primary" onclick="openCreate()">+ Tạo mới</button>
+
+<!-- CMUC 1: Danh sách -->
+<table id="itemTable">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Tên</th>
+      <th>Mô tả</th>
+      <th>Ngày tạo</th>
+      <th>Thao tác</th>
+    </tr>
+  </thead>
+  <tbody id="itemBody"></tbody>
+</table>
+
+<!-- Modal: Create / Edit -->
+<div class="modal" id="formModal">
+  <div class="modal-box">
+    <h2 id="formTitle">Tạo mới</h2>
+    <label>Tên <span style="color:red">*</span></label>
+    <input type="text" id="fieldName" placeholder="Nhập tên..." />
+    <div class="error" id="nameError"></div>
+    <label>Mô tả</label>
+    <textarea id="fieldDesc" rows="3" placeholder="Nhập mô tả..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('formModal')">Hủy</button>
+      <button class="btn-primary" onclick="submitForm()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detail -->
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <h2>Chi tiết bản ghi</h2>
+    <div class="detail-row"><span class="detail-label">ID:</span><span id="detailId"></span></div>
+    <div class="detail-row"><span class="detail-label">Tên:</span><span id="detailName"></span></div>
+    <div class="detail-row"><span class="detail-label">Mô tả:</span><span id="detailDesc"></span></div>
+    <div class="detail-row"><span class="detail-label">Ngày tạo:</span><span id="detailCreated"></span></div>
+    <div class="detail-row"><span class="detail-label">Cập nhật:</span><span id="detailUpdated"></span></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('detailModal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Delete Confirm -->
+<div class="modal" id="deleteModal">
+  <div class="modal-box">
+    <h2>Xác nhận xóa</h2>
+    <p>Bạn có chắc muốn xóa bản ghi này không?</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('deleteModal')">Hủy</button>
+      <button class="btn-danger" onclick="confirmDelete()">Xóa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:3000/api/items';
+  let editingId = null;
+  let deletingId = null;
+
+  async function loadItems() {
+    const res = await fetch(API);
+    const items = await res.json();
+    const tbody = document.getElementById('itemBody');
+    tbody.innerHTML = '';
+    items.forEach((item, idx) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.description}</td>
+          <td>${new Date(item.createdAt).toLocaleString('vi-VN')}</td>
+          <td>
+            <button class="btn-secondary" onclick="viewDetail('${item.id}')">Xem</button>
+            <button class="btn-primary" onclick="openEdit('${item.id}', '${item.name.replace(/'/g,"\\'")}', \`${item.description}\`)">Sửa</button>
+            <button class="btn-danger" onclick="openDelete('${item.id}')">Xóa</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  // CMUC 2: Create
+  function openCreate() {
+    editingId = null;
+    document.getElementById('formTitle').textContent = 'Tạo mới';
+    document.getElementById('fieldName').value = '';
+    document.getElementById('fieldDesc').value = '';
+    document.getElementById('nameError').textContent = '';
+    document.getElementById('formModal').classList.add('show');
+  }
+
+  // CMUC 4: Edit
+  function openEdit(id, name, desc) {
+    editingId = id;
+    document.getElementById('formTitle').textContent = 'Cập nhật';
+    document.getElementById('fieldName').value = name;
+    document.getElementById('fieldDesc').value = desc;
+    document.getElementById('nameError').textContent = '';
+    document.getElementById('formModal').classList.add('show');
+  }
+
+  async function submitForm() {
+    const name = document.getElementById('fieldName').value.trim();
+    const description = document.getElementById('fieldDesc').value.trim();
+
+    // Client-side validation (BR 25)
+    if (!name) {
+      document.getElementById('nameError').textContent = 'Tên là trường bắt buộc';
+      return;
+    }
+    document.getElementById('nameError').textContent = '';
+
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API}/${editingId}` : API;
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description })
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      document.getElementById('nameError').textContent = result.message;
+      return;
+    }
+
+    alert(result.message);
+    closeModal('formModal');
+    loadItems();
+  }
+
+  // CMUC 3: View Detail
+  async function viewDetail(id) {
+    const res = await fetch(`${API}/${id}`);
+    const item = await res.json();
+    document.getElementById('detailId').textContent = item.id;
+    document.getElementById('detailName').textContent = item.name;
+    document.getElementById('detailDesc').textContent = item.description;
+    document.getElementById('detailCreated').textContent = new Date(item.createdAt).toLocaleString('vi-VN');
+    document.getElementById('detailUpdated').textContent = new Date(item.updatedAt).toLocaleString('vi-VN');
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  // CMUC 5: Delete
+  function openDelete(id) {
+    deletingId = id;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+
+  async function confirmDelete() {
+    const res = await fetch(`${API}/${deletingId}`, { method: 'DELETE' });
+    const result = await res.json();
+    alert(result.message);
+    closeModal('deleteModal');
+    loadItems();
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  // Load on start
+  loadItems();
+</script>
+
+</body>
+</html>
