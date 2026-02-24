@@ -25,7 +25,12 @@ router.get('/', (req, res) => {
 
 // CMUC 3: View Detail - GET /api/items/:id
 router.get('/:id', (req, res) => {
-  const item = readDB().find(i => i.id === req.params.id && !i.isDeleted);
+  // BUG: Không lọc isDeleted, cho phép xem cả bản ghi đã xóa (SAI với BR 27)
+  const item = readDB().find(i => i.id === req.params.id);
+
+  // BR 27: Chỉ hiển thị bản ghi chưa bị xóa (ĐÚNG theo requirement)
+  // const item = readDB().find(i => i.id === req.params.id && !i.isDeleted);
+
   if (!item) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
   res.json(item);
 });
@@ -87,11 +92,11 @@ router.delete('/:id', (req, res) => {
   if (index === -1) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
 
   // BUG: Hard delete - xóa hẳn bản ghi khỏi mảng (SAI với BR 31)
-  items.splice(index, 1);
+  //items.splice(index, 1);
 
   // BR 31: Soft delete - đánh dấu "Đã xóa" (ĐÚNG theo requirement)
-  //items[index].isDeleted = true;
-  //items[index].updatedAt = new Date().toISOString();
+  items[index].isDeleted = true;
+  items[index].updatedAt = new Date().toISOString();
 
   writeDB(items);
   res.json({ message: 'Xóa thành công' });
