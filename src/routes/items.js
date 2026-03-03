@@ -26,10 +26,10 @@ router.get('/', (req, res) => {
 // CMUC 3: View Detail - GET /api/items/:id
 router.get('/:id', (req, res) => {
   // BUG: Không lọc isDeleted, cho phép xem cả bản ghi đã xóa (SAI với BR 27)
-  const item = readDB().find(i => i.id === req.params.id);
+  //const item = readDB().find(i => i.id === req.params.id);
 
   // BR 27: Chỉ hiển thị bản ghi chưa bị xóa (ĐÚNG theo requirement)
-  // const item = readDB().find(i => i.id === req.params.id && !i.isDeleted);
+  const item = readDB().find(i => i.id === req.params.id && !i.isDeleted);
 
   if (!item) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
   res.json(item);
