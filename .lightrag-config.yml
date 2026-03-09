@@ -1,0 +1,12 @@
+architecture: express-mvc
+
+layers:
+  primary:
+    - src/models/
+
+  secondary:
+    - src/controllers/
+    - src/routes/
+
+  ui:
+    - public/
