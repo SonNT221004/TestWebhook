@@ -32,7 +32,7 @@ function updateItem(req, res) {
 
   // BUG: Bỏ qua validation, cho phép name rỗng (SAI với BR 25)
 
-  BR 25: Validate required fields(ĐÚNG theo requirement)
+  // BR 25: Validate required fields(ĐÚNG theo requirement)
   if (!name || !name.trim()) {
     return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
   }
