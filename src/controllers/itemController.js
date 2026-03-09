@@ -33,9 +33,9 @@ function updateItem(req, res) {
   // BUG: Bỏ qua validation, cho phép name rỗng (SAI với BR 25)
 
   // BR 25: Validate required fields (ĐÚNG theo requirement)
-  if (!name || !name.trim()) {
-    return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
-  }
+  // if (!name || !name.trim()) {
+  //   return res.status(400).json({ message: 'Tên là trường bắt buộc (IEM 1)' });
+  // }
 
   const updated = itemModel.update(req.params.id, name, description);
   if (!updated) return res.status(404).json({ message: 'Không tìm thấy bản ghi' });
