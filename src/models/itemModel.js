@@ -46,20 +46,20 @@ function create(name, description) {
 }
 
 // CMUC 4
-function update(id, name, description) {
-  const items = readDB();
-  const index = items.findIndex(i => i.id === id && !i.isDeleted);
-  if (index === -1) return null;
+// function update(id, name, description) {
+//   const items = readDB();
+//   const index = items.findIndex(i => i.id === id && !i.isDeleted);
+//   if (index === -1) return null;
 
-  items[index] = {
-    ...items[index],
-    name: name.trim(),
-    description: description || '',
-    updatedAt: new Date().toISOString() // CBR1: audit trail
-  };
-  writeDB(items);
-  return items[index];
-}
+//   items[index] = {
+//     ...items[index],
+//     name: name.trim(),
+//     description: description || '',
+//     updatedAt: new Date().toISOString() // CBR1: audit trail
+//   };
+//   writeDB(items);
+//   return items[index];
+// }
 
 // CMUC 5
 function remove(id) {
